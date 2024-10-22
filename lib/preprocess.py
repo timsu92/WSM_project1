@@ -19,7 +19,7 @@ class Preprocessor:
             os.remove("./data.zip")
         self.chTokenizer = ckiptagger.WS("./data")
         nltk.download('averaged_perceptron_tagger_eng')
-        self.chPOS = ckiptagger.POS("./data")
+        # self.chPOS = ckiptagger.POS("./data")
 
     @staticmethod
     def clean(text: str):

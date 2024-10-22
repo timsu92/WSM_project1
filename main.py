@@ -45,3 +45,25 @@ for similarity, weighting in product(["cos", "euclidean"], ["tf", "tf-idf"]):
     for ranking in rankings:
         print(os.path.basename(ranking[0]), ranking[1], sep="\t")
     print("--------------------------------------")
+
+print("####### problem 3 #######")
+
+print("creating new corpus and adding ChineseNews to corpus...")
+vecSpace = VectorSpace()
+vecSpace.addDocsInFolder(
+    os.path.join(os.path.dirname(__file__), "ChineseNews"), lang="zh"
+)
+print("Corpus created!\n")
+
+query = (
+    input("Type query for problem 3 here (blank for '資安 遊戲')\n> ")
+    or "資安 遊戲"
+)
+
+for similarity, weighting in product(["cos"], ["tf", "tf-idf"]):
+    rankings = vecSpace.queryByText(query, weighting, similarity, "zh", 10)
+    print(weighting.upper(), "Cosine" if similarity == "cos" else "Euclidean")
+    print("NewsID\t\tScore")
+    for ranking in rankings:
+        print(os.path.basename(ranking[0]), ranking[1], sep="\t")
+    print("--------------------------------------")
