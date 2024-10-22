@@ -3,13 +3,13 @@ from typing import Iterable, List, Literal
 
 import ckiptagger
 
-from PorterStemmer import PorterStemmer
+from lib.porterStemmer import PorterStemmer
 
 
 class Preprocessor:
     def __init__(self):
         self.stemmer = PorterStemmer()
-        with open("eng.stop", "r") as f:
+        with open(os.path.join(os.path.dirname(__file__), "eng.stop"), "r") as f:
             self.stopWords = set(f.read().split())
         if not os.path.isdir("./data"):
             ckiptagger.data_utils.download_data_url("./")
@@ -33,7 +33,7 @@ class Preprocessor:
     def removeStopWords(self, tokens: Iterable[str]):
         return (token for token in tokens if token not in self.stopWords)
 
-    def tokenize(self, docs: List[str], lang: Literal["en", "zh", "both"]):
+    def tokenize(self, docs: Iterable[str], lang: Literal["en", "zh", "both"]):
         """tokenize text into words and stem them
         `both` lang is considered `zh` mode"""
         docs = (self.clean(t) for t in docs)
