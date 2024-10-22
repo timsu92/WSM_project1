@@ -12,6 +12,8 @@ class Preprocessor:
         with open(os.path.join(os.path.dirname(__file__), "eng.stop"), "r") as f:
             self.stopWords = set(f.read().split())
         if not os.path.isdir("./data"):
+            print("downloading data for ckiptagger...")
+            print("Will download and extract to 2.5GB in total...")
             ckiptagger.data_utils.download_data_url("./")
             os.remove("./data.zip")
         self.chTokenizer = ckiptagger.WS("./data")
