@@ -2,6 +2,7 @@ import os
 from typing import Iterable, List, Literal
 
 import ckiptagger
+import nltk
 
 from lib.porterStemmer import PorterStemmer
 
@@ -17,6 +18,7 @@ class Preprocessor:
             ckiptagger.data_utils.download_data_url("./")
             os.remove("./data.zip")
         self.chTokenizer = ckiptagger.WS("./data")
+        nltk.download('averaged_perceptron_tagger_eng')
         self.chPOS = ckiptagger.POS("./data")
 
     @staticmethod
@@ -58,7 +60,9 @@ class Preprocessor:
                         tokens.append(token)
                 yield tokens
 
-    def pos(self, docTokens: Iterable[List[str]]):
-        """@pre: tokenize
-        Support Chinese only for now"""
-        return self.chPOS(docTokens)
+    def pos(self, docTokens: Iterable[List[str]], lang: Literal["en", "zh", "both"]):
+        """@pre: tokenize"""
+        if lang == "en":
+            return (nltk.pos_tag(tok) for tok in docTokens)
+        else:
+            raise ValueError(f"lang {lang} not supported")

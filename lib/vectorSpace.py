@@ -103,23 +103,21 @@ class VectorSpace:
         else:
             raise ValueError(f"comparer {comparer} not supported")
 
-    def query(
+    def queryByVector(
         self,
-        query: str,
+        query: NDArray,
         weighting: Literal["tf", "tf-idf"],
         comparer: Literal["cos", "euclidean"],
-        lang: Literal["en", "zh", "both"],
         topK: int,
     ):
-        queryVec = self.buildTfVecFromText(query, lang)
         if weighting == "tf-idf":
-            for i in range(len(queryVec)):
-                queryVec[i] *= np.log2(len(self.tf.keys()) / self.idf[i])
+            for i in range(len(query)):
+                query[i] *= np.log2(len(self.tf.keys()) / self.idf[i])
         if comparer == "cos":
             return heapq.nlargest(
                 topK,
                 (
-                    (docName, self.similarity(queryVec, docName, weighting, comparer))
+                    (docName, self.similarity(query, docName, weighting, comparer))
                     for docName, docVec in self.tf.items()
                 ),
                 lambda x: x[1],
@@ -128,8 +126,19 @@ class VectorSpace:
             return heapq.nsmallest(
                 topK,
                 (
-                    (docName, self.similarity(queryVec, docName, weighting, comparer))
+                    (docName, self.similarity(query, docName, weighting, comparer))
                     for docName, docVec in self.tf.items()
                 ),
                 lambda x: x[1],
             )
+
+    def queryByText(
+        self,
+        query: str,
+        weighting: Literal["tf", "tf-idf"],
+        comparer: Literal["cos", "euclidean"],
+        lang: Literal["en", "zh", "both"],
+        topK: int,
+    ):
+        queryVec = self.buildTfVecFromText(query, lang)
+        return self.queryByVector(queryVec, weighting, comparer, topK)
