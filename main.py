@@ -91,42 +91,47 @@ with open(os.path.join(os.path.dirname(__file__), "smaller_dataset", "rel.tsv"))
 nQueries = len(
     os.listdir(os.path.join(os.path.dirname(__file__), "smaller_dataset", "queries"))
 )
-MRR = 0
-MAP = 0
-recall = 0
-print("Calculating query scores...")
-for queryFName in tqdm(
-    os.listdir(os.path.join(os.path.dirname(__file__), "smaller_dataset", "queries"))
-):
-    if queryFName.endswith(".txt"):
-        with open(
-            os.path.join(
-                os.path.dirname(__file__), "smaller_dataset", "queries", queryFName
-            )
-        ) as f:
-            query = f.read()
-        rankings = vecSpace.queryByText(query, "tf-idf", "cos", "en", 10)
-        corrects = 0
-        precision = 0
-        mrrFound = False
-        for i, ranking in enumerate(rankings):
-            if (
-                int(os.path.basename(ranking[0]).split(".")[0][1:])
-                in answers[queryFName.split(".")[0]]
-            ):
-                # the retrieved document is relevant
-                if not mrrFound:
-                    MRR += 1.0 / (i + 1)
-                    mrrFound = True
-                corrects += 1
-                precision += corrects / (i + 1)
-        if corrects > 0:
-            MAP += precision / corrects
-        recall += corrects / len(answers[queryFName.split(".")[0]])
-MRR /= nQueries
-MAP /= nQueries
-recall /= nQueries
+print("Start calculating similarity scores")
+for similarity, weighting in product(["cos", "euclidean"], ["tf", "tf-idf"]):
+    MRR = 0
+    MAP = 0
+    recall = 0
+    print(weighting.upper(), "Cosine" if similarity == "cos" else "Euclidean")
+    for queryFName in tqdm(
+        os.listdir(
+            os.path.join(os.path.dirname(__file__), "smaller_dataset", "queries")
+        )
+    ):
+        if queryFName.endswith(".txt"):
+            with open(
+                os.path.join(
+                    os.path.dirname(__file__), "smaller_dataset", "queries", queryFName
+                )
+            ) as f:
+                query = f.read()
+            rankings = vecSpace.queryByText(query, weighting, similarity, "en", 10)
+            corrects = 0
+            precision = 0
+            mrrFound = False
+            for i, ranking in enumerate(rankings):
+                if (
+                    int(os.path.basename(ranking[0]).split(".")[0][1:])
+                    in answers[queryFName.split(".")[0]]
+                ):
+                    # the retrieved document is relevant
+                    if not mrrFound:
+                        MRR += 1.0 / (i + 1)
+                        mrrFound = True
+                    corrects += 1
+                    precision += corrects / (i + 1)
+            if corrects > 0:
+                MAP += precision / corrects
+            recall += corrects / len(answers[queryFName.split(".")[0]])
+    MRR /= nQueries
+    MAP /= nQueries
+    recall /= nQueries
 
-print("MRR@10", MRR, sep="\t")
-print("MAP@10", MAP, sep="\t")
-print("RECALL@10", recall, sep="\t")
+    print("MRR@10\t", MRR, sep="\t")
+    print("MAP@10\t", MAP, sep="\t")
+    print("RECALL@10", recall, sep="\t")
+    print("--------------------------------------")
